@@ -31,7 +31,6 @@ jobs:
         username: ${{ secrets.VPS_USER }}
         password: ${{ secrets.VPS_PASSWORD }}
         script: |
-          set -e
           cd /var/www/vantex
           git reset --hard HEAD
           git clean -fd
@@ -39,12 +38,12 @@ jobs:
           
           # Backend deployment
           cd WebService
-          npm ci --omit=dev --prefer-offline 2>/dev/null
+          npm install --omit=dev
           DB_SERVER=89.116.122.189 DB_DATABASE=VantexAffiliate DB_USER=sa DB_PASSWORD=Austratech25 PORT=3000 NODE_ENV=production pm2 restart vantex-backend || DB_SERVER=89.116.122.189 DB_DATABASE=VantexAffiliate DB_USER=sa DB_PASSWORD=Austratech25 PORT=3000 NODE_ENV=production pm2 start ecosystem.config.js
           
           # Frontend deployment
           cd ../ReactClient
-          npm ci --prefer-offline 2>/dev/null
+          npm install
           npm run build
           sudo mkdir -p /var/www/html
           sudo cp -r dist/* /var/www/html/

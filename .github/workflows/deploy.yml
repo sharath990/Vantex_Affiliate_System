@@ -9,18 +9,33 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
+    
+    - name: Download build artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: frontend-build
+        path: ReactClient/dist/
     
     - name: Setup Node.js
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
-        node-version: '18'
+        node-version: '20'
+        cache: 'npm'
+        cache-dependency-path: 'ReactClient/package-lock.json'
         
     - name: Build Frontend
       run: |
         cd ReactClient
-        npm install
+        npm ci --prefer-offline
         npm run build
+        
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: frontend-build
+        path: ReactClient/dist/
+        retention-days: 1
         
     - name: Deploy to VPS
       uses: appleboy/ssh-action@v0.1.5
@@ -29,6 +44,7 @@ jobs:
         username: ${{ secrets.VPS_USER }}
         password: ${{ secrets.VPS_PASSWORD }}
         script: |
+          set -e
           cd /var/www/vantex
           git reset --hard HEAD
           git clean -fd
@@ -36,20 +52,16 @@ jobs:
           
           # Backend deployment
           cd WebService
-          npm install --production
-          npm install msnodesqlv8 --save
+          npm ci --omit=dev --prefer-offline
           DB_SERVER=89.116.122.189 DB_DATABASE=VantexAffiliate DB_USER=sa DB_PASSWORD=Austratech25 PORT=3000 NODE_ENV=production pm2 restart vantex-backend || DB_SERVER=89.116.122.189 DB_DATABASE=VantexAffiliate DB_USER=sa DB_PASSWORD=Austratech25 PORT=3000 NODE_ENV=production pm2 start ecosystem.config.js
-          pm2 status
           
-          # Frontend deployment
+          # Frontend deployment (use pre-built from GitHub Actions)
           cd ../ReactClient
-          npm install
-          npm run build
           sudo mkdir -p /var/www/html
           sudo cp -r dist/* /var/www/html/
           
           # Update nginx config
           sudo cp /var/www/vantex/nginx.conf /etc/nginx/sites-available/vantex
-          sudo ln -sf /etc/nginx/sites-available/vantex /etc/nginx/sites-enabled/
-          sudo rm -f /etc/nginx/sites-enabled/default
           sudo nginx -t && sudo systemctl reload nginx
+          
+          echo "✅ Deployment completed successfully"

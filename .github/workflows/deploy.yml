@@ -11,12 +11,6 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
-    - name: Download build artifacts
-      uses: actions/download-artifact@v4
-      with:
-        name: frontend-build
-        path: ReactClient/dist/
-    
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
@@ -29,13 +23,6 @@ jobs:
         cd ReactClient
         npm ci --prefer-offline
         npm run build
-        
-    - name: Upload build artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: frontend-build
-        path: ReactClient/dist/
-        retention-days: 1
         
     - name: Deploy to VPS
       uses: appleboy/ssh-action@v0.1.5
@@ -52,11 +39,13 @@ jobs:
           
           # Backend deployment
           cd WebService
-          npm ci --omit=dev --prefer-offline
+          npm ci --omit=dev --prefer-offline 2>/dev/null
           DB_SERVER=89.116.122.189 DB_DATABASE=VantexAffiliate DB_USER=sa DB_PASSWORD=Austratech25 PORT=3000 NODE_ENV=production pm2 restart vantex-backend || DB_SERVER=89.116.122.189 DB_DATABASE=VantexAffiliate DB_USER=sa DB_PASSWORD=Austratech25 PORT=3000 NODE_ENV=production pm2 start ecosystem.config.js
           
-          # Frontend deployment (use pre-built from GitHub Actions)
+          # Frontend deployment
           cd ../ReactClient
+          npm ci --prefer-offline 2>/dev/null
+          npm run build
           sudo mkdir -p /var/www/html
           sudo cp -r dist/* /var/www/html/
           

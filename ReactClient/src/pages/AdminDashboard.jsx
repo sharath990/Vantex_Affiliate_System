@@ -230,7 +230,7 @@ const AdminDashboard = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard V1.0 <span className="text-sm text-green-600">v2.0</span></h1>
+              <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
               <p className="text-gray-600">Welcome back, {user?.username}</p>
             </div>
             <div className="flex space-x-3">

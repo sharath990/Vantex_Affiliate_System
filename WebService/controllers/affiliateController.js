@@ -23,7 +23,7 @@ export const registerAffiliate = async (req, res) => {
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { full_name, email, mt5_rebate_account, contact_details, ox_ib_link, referrer_code, recaptcha_token } = req.body;
+    const { full_name, email, mt5_rebate_account, contact_details, ox_ib_link, referrer_code } = req.body;
 
     // 1. Rate limiting check
     const rateLimitCheck = await checkRateLimit(clientIP, email);
@@ -35,16 +35,7 @@ export const registerAffiliate = async (req, res) => {
       });
     }
 
-    // 2. reCAPTCHA verification
-    if (recaptcha_token) {
-      const recaptchaResult = await verifyRecaptcha(recaptcha_token);
-      if (!recaptchaResult.success || recaptchaResult.score < 0.5) {
-        await recordAttempt(clientIP, email, false);
-        return res.status(400).json({ message: 'reCAPTCHA verification failed' });
-      }
-    }
-
-    // 3. Check disposable email
+    // 2. Check disposable email
     if (await isDisposableEmail(email)) {
       await recordAttempt(clientIP, email, false);
       return res.status(400).json({ message: 'Disposable email addresses are not allowed' });

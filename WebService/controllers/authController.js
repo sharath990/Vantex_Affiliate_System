@@ -5,6 +5,7 @@ import { executeQuery } from '../config/database.js';
 export const login = async (req, res) => {
   try {
     const { username, password } = req.body;
+    console.log('Login attempt:', { username, password: '***' });
 
     // Find admin user
     const result = await executeQuery(`
@@ -12,16 +13,29 @@ export const login = async (req, res) => {
       FROM AdminUsers 
       WHERE username = '${username}'
     `);
+    console.log('Database query result:', result.length > 0 ? 'User found' : 'User not found');
 
     if (result.length === 0) {
+      console.log('No user found with username:', username);
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
     const user = result[0];
+    console.log('Found user:', { id: user.id, username: user.username, role: user.role });
+    console.log('Stored password hash:', user.password_hash);
+    console.log('Input password:', password);
 
     // Verify password
     const isValidPassword = await bcrypt.compare(password, user.password_hash);
+    console.log('Password validation result:', isValidPassword);
+    
+    // Test with manual hash generation
+    const testHash = await bcrypt.hash(password, 10);
+    console.log('Test hash for input password:', testHash);
+    const testCompare = await bcrypt.compare(password, testHash);
+    console.log('Test compare result:', testCompare);
     if (!isValidPassword) {
+      console.log('Password mismatch for user:', username);
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 

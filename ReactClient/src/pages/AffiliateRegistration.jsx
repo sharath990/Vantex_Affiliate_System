@@ -2,17 +2,7 @@ import { useState, useEffect } from 'react';
 import { affiliateAPI } from '../utils/api';
 import { UserPlus, Mail, User, CreditCard, Phone, Link, CheckCircle, AlertCircle, BookOpen, Users, Shield } from 'lucide-react';
 
-// Load reCAPTCHA script
-const loadRecaptcha = () => {
-  if (window.grecaptcha) return Promise.resolve();
-  
-  return new Promise((resolve) => {
-    const script = document.createElement('script');
-    script.src = `https://www.google.com/recaptcha/api.js?render=${import.meta.env.VITE_RECAPTCHA_SITE_KEY}`;
-    script.onload = resolve;
-    document.head.appendChild(script);
-  });
-};
+
 
 const AffiliateRegistration = () => {
   const [formData, setFormData] = useState({
@@ -26,13 +16,7 @@ const AffiliateRegistration = () => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [success, setSuccess] = useState(false);
-  const [recaptchaLoaded, setRecaptchaLoaded] = useState(false);
 
-  useEffect(() => {
-    loadRecaptcha().then(() => {
-      setRecaptchaLoaded(true);
-    });
-  }, []);
 
   const handleChange = (e) => {
     setFormData({
@@ -47,18 +31,7 @@ const AffiliateRegistration = () => {
     setMessage('');
 
     try {
-      let recaptchaToken = null;
-      
-      // Get reCAPTCHA token if loaded
-      if (recaptchaLoaded && window.grecaptcha) {
-        try {
-          recaptchaToken = await window.grecaptcha.execute(import.meta.env.VITE_RECAPTCHA_SITE_KEY, { action: 'register' });
-        } catch (error) {
-          console.error('reCAPTCHA error:', error);
-        }
-      }
-
-      const response = await affiliateAPI.register({ ...formData, recaptcha_token: recaptchaToken });
+      const response = await affiliateAPI.register(formData);
       setSuccess(true);
       
       if (response.data.requiresVerification) {
@@ -331,12 +304,7 @@ const AffiliateRegistration = () => {
                 <p className="text-xs text-gray-500">
                   * Required fields • Secure & encrypted
                 </p>
-                {recaptchaLoaded && (
-                  <div className="flex items-center justify-center mt-2 text-xs text-gray-500">
-                    <Shield className="w-3 h-3 mr-1" />
-                    Protected by reCAPTCHA
-                  </div>
-                )}
+
               </div>
             </div>
           </div>

@@ -37,7 +37,7 @@ jobs:
           # Backend deployment
           cd WebService
           npm install
-          pm2 restart vantex-backend || pm2 start ecosystem.config.js
+          PORT=3000 pm2 restart vantex-backend || PORT=3000 pm2 start ecosystem.config.js
           
           # Frontend deployment
           cd ../ReactClient
@@ -46,5 +46,8 @@ jobs:
           sudo mkdir -p /var/www/html
           sudo cp -r dist/* /var/www/html/
           
-          # Restart nginx
-          sudo systemctl reload nginx
+          # Update nginx config
+          sudo cp /var/www/vantex/nginx.conf /etc/nginx/sites-available/vantex
+          sudo ln -sf /etc/nginx/sites-available/vantex /etc/nginx/sites-enabled/
+          sudo rm -f /etc/nginx/sites-enabled/default
+          sudo nginx -t && sudo systemctl reload nginx

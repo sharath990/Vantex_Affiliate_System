@@ -2,8 +2,7 @@ name: Deploy to VPS
 
 on:
   push:
-    branches: [ main, master ]
-  workflow_dispatch:
+    branches: [ main ]
 
 jobs:
   deploy:
@@ -16,41 +15,22 @@ jobs:
       uses: actions/setup-node@v3
       with:
         node-version: '18'
-        cache: 'npm'
-        cache-dependency-path: |
-          ReactClient/package-lock.json
-          WebService/package-lock.json
-    
-    - name: Install Frontend Dependencies
-      run: |
-        cd ReactClient
-        npm ci
-    
+        
     - name: Build Frontend
       run: |
         cd ReactClient
+        npm install
         npm run build
-    
+        
     - name: Deploy to VPS
-      uses: appleboy/ssh-action@v0.1.7
+      uses: appleboy/ssh-action@v0.1.5
       with:
         host: ${{ secrets.VPS_HOST }}
         username: ${{ secrets.VPS_USER }}
-        key: ${{ secrets.VPS_SSH_KEY }}
+        password: ${{ secrets.VPS_PASSWORD }}
         script: |
           cd /var/www/vantex
           git pull origin main
-          
-          # Backend deployment
-          cd WebService
-          npm ci --production
-          npx pm2 restart vantex-backend || npx pm2 start ecosystem.config.js
-          
-          # Frontend deployment
-          cd ../ReactClient
-          npm ci
-          npm run build
-          sudo cp -r dist/* /var/www/html/
-          
-          # Restart nginx
-          sudo systemctl reload nginx
+          cd ReactClient && npm install && npm run build
+          cd ../WebService && npm install
+          pm2 restart all

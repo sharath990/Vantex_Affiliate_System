@@ -4,7 +4,7 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const connectionString = "server=localhost\\SQLEXPRESS;Database=VantexAffiliate;Trusted_Connection=Yes;Driver={ODBC Driver 17 for SQL Server}";
+const connectionString = `server=${process.env.DB_SERVER || 'localhost'};Database=${process.env.DB_DATABASE || 'VantexAffiliate'};uid=${process.env.DB_USER || 'sa'};pwd=${process.env.DB_PASSWORD};Driver={ODBC Driver 17 for SQL Server}`;
 
 console.log('Using connection string:', connectionString);
 

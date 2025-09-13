@@ -36,7 +36,8 @@ jobs:
           
           # Backend deployment
           cd WebService
-          npm install
+          npm install --production
+          npm install msnodesqlv8 --save
           PORT=3000 NODE_ENV=production pm2 restart vantex-backend || PORT=3000 NODE_ENV=production pm2 start ecosystem.config.js
           pm2 logs vantex-backend --lines 20
           

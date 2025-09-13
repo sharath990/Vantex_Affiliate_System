@@ -27,6 +27,14 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
+// Request logging middleware
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+  console.log('Headers:', req.headers);
+  console.log('Body:', req.body);
+  next();
+});
+
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
@@ -59,6 +67,8 @@ app.use('*', (req, res) => {
 const startServer = async () => {
   console.log('🚀 Starting Vantex Affiliate System...');
   console.log('Environment:', process.env.NODE_ENV);
+  console.log('PORT:', PORT);
+  console.log('CORS Origin:', process.env.NODE_ENV === 'production' ? 'http://89.116.122.189' : 'http://localhost:5173');
   
   try {
     await connectDB();

@@ -30,6 +30,8 @@ jobs:
         password: ${{ secrets.VPS_PASSWORD }}
         script: |
           cd /var/www/vantex
+          git reset --hard HEAD
+          git clean -fd
           git pull origin main
           
           # Backend deployment
@@ -41,6 +43,7 @@ jobs:
           cd ../ReactClient
           npm install
           npm run build
+          sudo mkdir -p /var/www/html
           sudo cp -r dist/* /var/www/html/
           
           # Restart nginx
